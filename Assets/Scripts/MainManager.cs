@@ -76,6 +76,8 @@ public class MainManager : MonoBehaviour
         m_GameOver = true;
         GameOverText.SetActive(true);
         ScoreManager.Instanse.RefreshScore();
+        //ScoreManager.Instanse.SaveScoreList();
+        ScoreManager.Instanse.SaveScoreListBinary();
         BestScore.text = $"Best Score : {ScoreManager.Instanse.bestPlayerScore.playerName} : {ScoreManager.Instanse.bestPlayerScore.score}";
     }
 

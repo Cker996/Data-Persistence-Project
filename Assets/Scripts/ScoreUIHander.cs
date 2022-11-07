@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 
 public class ScoreUIHander : MonoBehaviour
 {
-    public Text name;
+    public Text nameS;
     public Text score;
 
     private void Update()
@@ -15,10 +15,10 @@ public class ScoreUIHander : MonoBehaviour
         string scoreoutput = "";
         for (int i = 1; i < ScoreManager.Instanse.scoreList.Count; i++)
         {
-            nameoutput += string.Format("{0}\n", ScoreManager.Instanse.scoreList[i].playerName);
+            nameoutput += string.Format("{0:D2}. {1}\n", i,ScoreManager.Instanse.scoreList[i].playerName);
             scoreoutput += string.Format("{0}\n", ScoreManager.Instanse.scoreList[i].score);
         }
-        name.text = nameoutput;
+        nameS.text = nameoutput;
         score.text = scoreoutput;
     }
 
