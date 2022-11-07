@@ -4,14 +4,23 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-[DefaultExecutionOrder(1000)]
+[DefaultExecutionOrder(1500)]
 public class MenuUIHandler : MonoBehaviour
 {
     public InputField PlayerName;
+    public Text best;
     // Start is called before the first frame update
     void Start()
     {
-
+        if (ScoreManager.Instanse.player.playerName != "")
+        {
+            PlayerName.text = ScoreManager.Instanse.player.playerName;
+            //Debug.Log("aready read.");
+        }
+        if(ScoreManager.Instanse.bestPlayerScore.playerName != "")
+        {
+            best.text = $"Best Score:  {ScoreManager.Instanse.bestPlayerScore.playerName} : {ScoreManager.Instanse.bestPlayerScore.score}";
+        }
     }
 
     // Update is called once per frame

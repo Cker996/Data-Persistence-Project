@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.IO;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 
 public class ScoreManager : MonoBehaviour
 {
@@ -12,37 +14,54 @@ public class ScoreManager : MonoBehaviour
     private static bool isLoaded = false;
     public List<PlayerScore> scoreList = new List<PlayerScore>();
 
-
     private void Awake()
-    {   
+    {
         if (!isLoaded)
         {
             Instanse = this;
             DontDestroyOnLoad(gameObject);
             isLoaded = true;
         }
-        LoadScoreList();
+        InitScoreList();
     }
 
-    public void LoadScoreList()
+    void InitScoreList()
     {
-        string path = Application.persistentDataPath + "/SaveScore.json";
-        if (File.Exists(path))
+
+        try
         {
-            string json = File.ReadAllText(path);
-            scoreList = JsonUtility.FromJson<List<PlayerScore>>(json);
+            string path = Application.persistentDataPath + "/SaveScore.json";
+            string path1 = Application.persistentDataPath + "/SaveScore.bin";
+            if (File.Exists(path))
+            {
+                LoadScoreListJson(path);
+                player.playerName = scoreList[0].playerName;
+                bestPlayerScore.playerName = scoreList[1].playerName;
+                bestPlayerScore.score = scoreList[1].score;
+            }else if (File.Exists(path1))
+            {
+                LoadScoreListBinary(path1);
+                player.playerName = scoreList[0].playerName;
+                bestPlayerScore.playerName = scoreList[1].playerName;
+                bestPlayerScore.score = scoreList[1].score;
+            }
         }
-        else
+        finally
         {
-            player.playerName = "First";
-            player.score = 0;
-            scoreList.Add(new PlayerScore() { score = player.score, playerName = player.playerName });
+            if (ScoreManager.Instanse.player.playerName == "")
+            {
+                player.playerName = "First";
+                player.score = 0;
+                scoreList.Add(new PlayerScore() { score = player.score, playerName = player.playerName });
+                player.playerName = "";
+            }
         }
+
     }
 
     public void RefreshName()
     {
-        if(scoreList.Count == 1)
+        if (scoreList.Count == 1)
         {
             scoreList.Insert(0, new PlayerScore() { score = player.score, playerName = player.playerName });
         }
@@ -73,6 +92,11 @@ public class ScoreManager : MonoBehaviour
             else return -1;
 
         });
+        for (int i = 11; i < scoreList.Count; i++)
+        {
+            scoreList.RemoveAt(i);
+        }
+
         player.score = 0;
         scoreList.Insert(0, new PlayerScore() { score = player.score, playerName = player.playerName });
         bestPlayerScore.playerName = scoreList[1].playerName;
@@ -81,8 +105,55 @@ public class ScoreManager : MonoBehaviour
 
     public void SaveScoreList()
     {
-        string json = JsonUtility.ToJson(scoreList);
-        //File.WriteAllText(Application.persistentDataPath + "/SaveScore.json",json);
+        string json = "";
+        foreach (PlayerScore ps in scoreList)
+        {
+            json += JsonUtility.ToJson(ps) + "\n";
+        }
+        json = json.TrimEnd('\n');
+        File.WriteAllText(Application.persistentDataPath + "/SaveScore.json", json);
+    }
+
+    private void LoadScoreListJson(string paths)
+    {
+        string json = File.ReadAllText(paths);
+        //Debug.Log($"string: {json}");
+        string[] jsonsubs = json.Split('\n');
+        foreach (var sub in jsonsubs)
+        {
+            scoreList.Add(JsonUtility.FromJson<PlayerScore>(sub));
+            //Debug.Log($"Substring: {sub}");
+            
+        }
+    }
+
+    public void SaveScoreListBinary()
+    {
+        string json = "";
+        foreach (PlayerScore ps in scoreList)
+        {
+            json += JsonUtility.ToJson(ps) + "\n";
+        }
+        json = json.TrimEnd('\n');
+        IFormatter formatter = new BinaryFormatter();
+        Stream stream = new FileStream(Application.persistentDataPath + "/SaveScore.bin", FileMode.Create, FileAccess.Write, FileShare.None);
+        formatter.Serialize(stream, json);
+        stream.Close();
+    }
+    private void LoadScoreListBinary(string paths)
+    {
+        IFormatter formatter = new BinaryFormatter();
+        Stream stream = new FileStream(paths, FileMode.Open, FileAccess.Read, FileShare.Read);
+        string json = (string)formatter.Deserialize(stream);
+        stream.Close();
+        //Debug.Log($"string: {json}");
+        string[] jsonsubs = json.Split('\n');
+        foreach (var sub in jsonsubs)
+        {
+            scoreList.Add(JsonUtility.FromJson<PlayerScore>(sub));
+            //Debug.Log($"Substring: {sub}");
+
+        }
     }
 
     [System.Serializable]
